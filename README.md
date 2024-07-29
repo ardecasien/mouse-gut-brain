@@ -14,6 +14,7 @@ The following files are expected:
 * A .csv file containing metadata data ```data/mouse_meta.csv```
 * A .csv file containing technical metadata data ```data/mouse_tech_meta.csv```
 * An .rds file containing primate expression data (from Zhu et al. 2018) ```data/human_v_macaque_zhu_MFC.rds```
+* A .txt file containing network parameters for MiMeNet analysis ```data/network_parameters.txt```
   
 # Pipeline
 
