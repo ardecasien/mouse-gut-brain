@@ -1,0 +1,1 @@
+{"num_layer": 1, "lr": 0.001, "layer_nodes": 512, "l2": 0.001, "l1": 0, "dropout": 0.5}
