@@ -1,5 +1,3 @@
-setwd("~/Dropbox/Desktop/Papers/ACTIVE/Mouse Microbiomes")
-
 library(limma)
 library(edgeR)
 library(stringr)
@@ -357,6 +355,8 @@ TukeyHSD(mod)
 ## mimenet (Figure 5)
 ################################
 
+# run using outputs from microbiome.sh
+
 mouse_res = read.csv('model_results_qualweights_tech.csv')
 mouse_res = subset(mouse_res, contrast == 'HvM')
 dim(mouse_res)
@@ -364,7 +364,7 @@ dim(mouse_res)
 de_hum = subset(mouse_res, padj < 0.1 & beta > 0)
 de_mac = subset(mouse_res, padj < 0.1 & beta < 0)
 
-gene_clusters = read.csv('mimenetpathways/metabolite_clusters.csv')
+gene_clusters = read.csv('metabolite_clusters.csv')
 dim(gene_clusters)
 table(gene_clusters$X %in% mouse_res$mmusculus_homolog_ensembl_gene)
 cl = unique(gene_clusters$Cluster)
@@ -514,7 +514,7 @@ sum(m)
 fisher.test(m, alternative = 'greater')
 
 ############################
-## biological processes (Figure 3A)
+## biological processes (Figure 4A)
 ############################
 
 mouse_res = read.csv('model_results_qualweights_tech.csv')
@@ -810,7 +810,7 @@ for(i in 1:length(levels(spv$Var2))){
 }
 
 #######################
-## plot expression of specific genes (Figure 4B)
+## plot residual expression of specific genes (Figure 4B)
 #######################
 
 ## DLG4 ENSMUSG00000020886	ENSG00000132535
