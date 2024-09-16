@@ -26,7 +26,7 @@ library(ggplot2)
 ## load data
 #################
 
-fc = read.csv("Alex_PFC_rawcounts.csv")
+fc = read.csv("counts.csv")
 rownames(fc) = fc$X
 fc = fc[,-1]
 
@@ -45,9 +45,6 @@ fc = fc[,colnames(fc) %!in% rm.fc]
 # Zhu et al. data
 
 hum_mac1a = readRDS('human_v_macaque_zhu_MFC.rds')
-
-#hum_mac1b = readRDS('human_v_macaque_zhu_overall.rds')
-#hum_mac2 = readRDS('mash_hum_macaque.rds')
 
 ###################
 ## filter genes
@@ -70,9 +67,6 @@ keeps.fc = unique(keeps.fc)
 datanow = fc[rownames(fc) %in% keeps.fc$gene,]
 metanow = subset(meta, ID %in% colnames(fc))
 metanow = metanow[order(match(metanow$ID, colnames(datanow))),]
-metanow$Age[which(metanow$Age == 'Juvenile' | metanow$Age == 'Infant')] = 'Young'
-metanow$group = paste(metanow$Species, metanow$Age, sep = ".")
-metanow$group = as.factor(metanow$group)
 
 design <- model.matrix(~0 + scaled_mapping + scaled_reads + Species.Batch, data = metanow)
 metanow$Species.Batch = as.factor(metanow$Species.Batch)
