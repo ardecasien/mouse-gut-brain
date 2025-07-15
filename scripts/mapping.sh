@@ -1,0 +1,94 @@
+git clone https://github.com/z0on/tag-based_RNAseq.git
+# it will probably save this folder in the home directory (~/tag-based_RNAseq)
+
+[Get reference genome, transcript to gene id files setup] ==========================================================================================
+#!/bin/bash
+
+# Create and navigate to the reference directory
+mkdir -p reference
+cd reference
+
+# Download the latest mouse transcriptome reference genome
+wget ftp://ftp.ensembl.org/pub/release-110/fasta/mus_musculus/cdna/Mus_musculus.GRCm39.cdna.all.fa.gz
+
+# Unzip the downloaded file
+find . -name '*.gz' -exec gunzip '{}' \;
+
+# Create Bowtie2 index for the transcriptome
+bowtie2-build Mus_musculus.GRCm39.cdna.all.fa transcriptome.fasta 
+
+[Human transcriptome] ==========================================================================================
+#!/bin/bash
+
+# Create and navigate to the human reference directory
+mkdir -p reference_human
+cd reference_human
+
+# Download the latest human transcriptome reference genome
+wget ftp://ftp.ensembl.org/pub/release-110/fasta/homo_sapiens/cdna/Homo_sapiens.GRCh38.cdna.all.fa.gz
+
+# Unzip the downloaded file
+find . -name '*.gz' -exec gunzip '{}' \;
+
+# Create Bowtie2 index for the transcriptome
+bowtie2-build Homo_sapiens.GRCh38.cdna.all.fa transcriptome_human.fasta 
+
+[Make folders to toss around processed files]==================================================================
+
+mkdir working
+mkdir working_fastq
+mkdir working_fq
+mkdir working_trim
+mkdir working_sam
+
+PATH="$PATH:~/tag-based_RNAseq" 
+
+[Download raw data files into  "working" directory]==================================================================
+
+[now get started] =======================================================================================
+cd working
+# go to "working" folder
+
+find . -name '*.gz' -exec gunzip '{}' \;
+#unzip any files ends with .gz
+
+find . -name '*.fastq' -exec mv {} ~/working \;
+# just bringing unziped fastq files to working folder from its child folder 
+
+ngs_concat.pl '-' '(.+)_S'
+# concatenating the corresponding fastq files by sample:
+# "FilenameTextImmediatelyBeforeSampleID(.+)FilenameTextImmediatelyAfterSampleID"
+
+find . -name '*.fastq' -exec mv {} ~/working_fastq \;
+
+>clean
+for F in *.fq; do
+echo "tagseq_clipper.pl $F | cutadapt - -a AAAAAAAA -a AGATCGG -q 15 -m 25 -o ${F/.fq/}.trim" >>clean;
+done
+# create a bash script to clean out adaptor sequences with CUTADAPT
+
+bash clean |& tee -a clean_output.txt
+#execute the script for the files in the working directory ('working')
+
+find . -name '*.fq' -exec mv {} ~/working_fq \;
+
+tagseq_bowtie2map.pl "trim$" ~/reference/transcriptome.fasta  > maps
+# create a bash script to map using Bowtie2
+
+bash maps |& tee -a maps_output.txt
+# this '|& tee -a' will save screen output while keep showing the screen output, 
+# and if the file (maps_output.txt) already exists, it will append the output to the file. 
+
+find . -name '*.trim' -exec mv {} ~/working_trim \;
+
+perl -pi -e 's/(ENSMUST\d+)\.\d+/\1/g' *.trim.sam
+# delete the 'version info of transcript'
+# ex) ENSMUST00000082414.1 --> ENSMUST00000082414
+
+samcount_launch_bt2.pl '\.sam' ~/reference/transcript_to_geneid_grcm38_98.tab > sc
+
+bash sc
+
+find . -name '*.sam' -exec mv {} ~/working_sam \;
+ 
+expression_compiler.pl *.sam.counts > allcounts.txt
